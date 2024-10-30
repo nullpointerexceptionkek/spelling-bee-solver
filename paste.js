@@ -52,7 +52,7 @@
   async function typeWord(word) {
     for (let char of word) {
       simulateKeyPress(char);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     const enterEventOptions = {
@@ -67,11 +67,11 @@
     document.dispatchEvent(new KeyboardEvent("keypress", enterEventOptions));
     document.dispatchEvent(new KeyboardEvent("keyup", enterEventOptions));
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
   function detectLetters() {
-    // Spellingbee.com Format
+    // Spellsbee.com Format
     let letterButtons = document.querySelectorAll(".keys-button.hex");
     let middleButton = document.querySelector(".keys-button.middle.hex");
 
