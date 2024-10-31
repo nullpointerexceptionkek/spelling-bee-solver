@@ -1,7 +1,15 @@
 Spelling bee solver
+## Instructions
 
-Instruction: paste the entire paste.js into your browser console, you can open the consle by pressing f12
+Paste the entire `paste.js` into your browser console. You can open the console by pressing `F12`.
 
-Only guarantee to work on nytimes and spellsbee.com
+**Note:** This script is only guaranteed to work on nytimes.com and spellsbee.com. Do not use this script if it violates the terms of service of the websites you run it on.
+
+## Features
+
+1. Auto-detect spellings
+2. Auto-type
+
+## License
 
 MIT License
