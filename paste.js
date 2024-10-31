@@ -1,5 +1,3 @@
-//MIT License Copyright Louis Li 2024
-//Paste the following code in browser console
 (async () => {
   async function fetchWordList() {
     try {
@@ -44,15 +42,15 @@
       cancelable: true,
     };
 
-    document.dispatchEvent(new KeyboardEvent("keydown", eventOptions));
-    document.dispatchEvent(new KeyboardEvent("keypress", eventOptions));
-    document.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
+    document.body.dispatchEvent(new KeyboardEvent("keydown", eventOptions));
+    document.body.dispatchEvent(new KeyboardEvent("keypress", eventOptions));
+    document.body.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
   }
 
-  async function typeWord(word) {
+  async function typeWord(word, keypressDelay, submissionDelay) {
     for (let char of word) {
       simulateKeyPress(char);
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, keypressDelay));
     }
 
     const enterEventOptions = {
@@ -63,17 +61,22 @@
       bubbles: true,
       cancelable: true,
     };
-    document.dispatchEvent(new KeyboardEvent("keydown", enterEventOptions));
-    document.dispatchEvent(new KeyboardEvent("keypress", enterEventOptions));
-    document.dispatchEvent(new KeyboardEvent("keyup", enterEventOptions));
+    document.body.dispatchEvent(
+      new KeyboardEvent("keydown", enterEventOptions)
+    );
+    document.body.dispatchEvent(
+      new KeyboardEvent("keypress", enterEventOptions)
+    );
+    document.body.dispatchEvent(new KeyboardEvent("keyup", enterEventOptions));
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, submissionDelay));
   }
 
   function detectLetters() {
+    let mode = "slow";
     // Spellsbee.com Format
-    let letterButtons = document.querySelectorAll(".keys-button.hex");
-    let middleButton = document.querySelector(".keys-button.middle.hex");
+    const letterButtons = document.querySelectorAll(".keys-button.hex");
+    const middleButton = document.querySelector(".keys-button.middle.hex");
 
     if (letterButtons.length === 7 && middleButton) {
       let letters = Array.from(letterButtons).map((button) =>
@@ -86,13 +89,14 @@
       }
       letters.unshift(middleLetter);
       console.log(`Detected letters (Method 1): ${letters.join(" ")}`);
-      return letters.join(" ");
+      mode = "fast";
+      return { letters: letters.join(" "), mode };
     }
-
     // NYT Format
-    let centerCell = document.querySelector(".hive-cell.center .cell-letter");
-    let outerCells = document.querySelectorAll(".hive-cell.outer .cell-letter");
-
+    const centerCell = document.querySelector(".hive-cell.center .cell-letter");
+    const outerCells = document.querySelectorAll(
+      ".hive-cell.outer .cell-letter"
+    );
     if (centerCell && outerCells.length === 6) {
       let middleLetter = centerCell.textContent.toLowerCase();
       let letters = Array.from(outerCells).map((cell) =>
@@ -100,7 +104,37 @@
       );
       letters.unshift(middleLetter);
       console.log(`Detected letters (Method 2): ${letters.join(" ")}`);
-      return letters.join(" ");
+      mode = "fast";
+      return { letters: letters.join(" "), mode };
+    }
+    // Spellsbee.org format
+    const hexGrid = document.querySelectorAll("#hexGrid .hex p");
+    const centerLetterElement = document.querySelector("#center-letter p");
+    if (hexGrid.length === 7 && centerLetterElement) {
+      const letters = Array.from(hexGrid).map((cell) =>
+        cell.textContent.toLowerCase()
+      );
+      const middleLetter = centerLetterElement.textContent.toLowerCase();
+      if (letters.includes(middleLetter)) {
+        letters.splice(letters.indexOf(middleLetter), 1);
+      }
+      letters.unshift(middleLetter);
+      console.log(`Detected letters: ${letters.join(" ")}`);
+      return { letters: letters.join(" "), mode };
+    }
+
+    // general format
+    const middleLetterElement = document.querySelector(".hex.middle");
+    const outerLetterElements = document.querySelectorAll(".hex:not(.middle)");
+
+    if (middleLetterElement && outerLetterElements.length === 6) {
+      const middleLetter = middleLetterElement.textContent.toLowerCase();
+      const letters = Array.from(outerLetterElements).map((el) =>
+        el.textContent.toLowerCase()
+      );
+      letters.unshift(middleLetter);
+      console.log(`Detected letters (General Format): ${letters.join(" ")}`);
+      return { letters: letters.join(" "), mode };
     }
 
     const userInput = window.prompt(
@@ -108,7 +142,7 @@
       ""
     );
     if (userInput) {
-      return userInput;
+      return { letters: userInput, mode };
     } else {
       console.error("No letters provided.");
       return null;
@@ -116,8 +150,12 @@
   }
 
   async function filterAndTypeWords() {
-    const letters = detectLetters();
-    if (!letters) return;
+    const detectionResult = detectLetters();
+    if (!detectionResult) return;
+
+    const { letters, mode } = detectionResult;
+    console.log(`Using ${mode} mode`);
+
     const wordList = await fetchWordList();
     if (wordList.length === 0) {
       console.error("Failed to load word list.");
@@ -130,9 +168,19 @@
     );
     console.log(`Found ${filteredWords.length} matching words:`);
     console.log(filteredWords);
+
+    let keypressDelay, submissionDelay;
+    if (mode === "fast") {
+      keypressDelay = 10;
+      submissionDelay = 100;
+    } else {
+      keypressDelay = 30;
+      submissionDelay = 2300;
+    }
+
     for (let word of filteredWords) {
       console.log(`Typing word: ${word}`);
-      await typeWord(word);
+      await typeWord(word, keypressDelay, submissionDelay);
     }
   }
 
