@@ -10,6 +10,11 @@ Paste the entire [`paste.js`](/paste.js) into your browser console. You can open
 1. Auto-detect spellings
 2. Auto-type
 
+## Note
+This script fetches the dictionary from a popular repo: `https://raw.githubusercontent.com/words/an-array-of-english-words/refs/heads/master/index.json`
+
+I have no control over this repo, and you should always check if it contains the actual word list file as it might get replaced by malicious code.
+
 ## License
 
 MIT License
